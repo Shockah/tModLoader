@@ -94,8 +94,8 @@ namespace ExampleMod.NPCs.Abomination
 			npc.lavaImmune = true;
 			npc.noGravity = true;
 			npc.noTileCollide = true;
-			npc.soundHit = 1;
-			npc.soundKilled = 1;
+			npc.HitSound = SoundID.NPCHit1;
+			npc.DeathSound = SoundID.NPCDeath1;
 			npc.buffImmune[24] = true;
 			music = MusicID.Boss2;
 		}
@@ -362,7 +362,7 @@ namespace ExampleMod.NPCs.Abomination
 			dontDamage = (player.Center - npc.Center).Length() > sphereRadius;
 		}
 
-		public override void ModifyHitByProjectile(Projectile projectile, ref int damage, ref float knockback, ref bool crit)
+		public override void ModifyHitByProjectile(Projectile projectile, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
 			Player player = Main.player[projectile.owner];
 			dontDamage = player.active && (player.Center - npc.Center).Length() > sphereRadius;
@@ -375,7 +375,7 @@ namespace ExampleMod.NPCs.Abomination
 				damage = 0;
 				crit = true;
 				dontDamage = false;
-				Main.PlaySound(3, (int)npc.position.X, (int)npc.position.Y, npc.soundHit);
+				Main.PlaySound(npc.HitSound, npc.position);
 				return false;
 			}
 			return true;

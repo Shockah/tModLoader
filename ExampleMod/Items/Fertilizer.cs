@@ -17,7 +17,7 @@ namespace ExampleMod.Items
 			item.useAnimation = 15;
 			item.useTime = 10;
 			item.useStyle = 1;
-			item.useSound = 81;
+			item.UseSound = SoundID.Item81;
 			item.consumable = true;
 		}
 
@@ -26,6 +26,7 @@ namespace ExampleMod.Items
 			return TileLoader.IsSapling(Main.tile[Player.tileTargetX, Player.tileTargetY].type);
 		}
 
+		// Note that this item does not work in Multiplayer, but serves as a learning tool for other things.
 		public override bool UseItem(Player player)
 		{
 			if (WorldGen.GrowTree(Player.tileTargetX, Player.tileTargetY))

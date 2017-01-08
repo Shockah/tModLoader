@@ -30,7 +30,7 @@ namespace Terraria.ModLoader
 		private static Func<Projectile, bool>[] HookCanDamage;
 		private static Func<Projectile, bool>[] HookMinionContactDamage;
 		private static Func<Projectile, NPC, bool?>[] HookCanHitNPC;
-		private delegate void DelegateModifyHitNPC(Projectile projectile, NPC target, ref int damage, ref float knockback, ref bool crit);
+		private delegate void DelegateModifyHitNPC(Projectile projectile, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection);
 		private static DelegateModifyHitNPC[] HookModifyHitNPC;
 		private static Action<Projectile, NPC, int, float, bool>[] HookOnHitNPC;
 		private static Func<Projectile, Player, bool>[] HookCanHitPvp;
@@ -79,21 +79,40 @@ namespace Terraria.ModLoader
 			Array.Resize(ref Main.projHook, nextProjectile);
 			Array.Resize(ref Main.projFrames, nextProjectile);
 			Array.Resize(ref Main.projPet, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.YoyosLifeTimeMultiplier, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.YoyosMaximumRange, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.YoyosTopSpeed, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.CanDistortWater, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.MinionShot, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.SentryShot, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.ForcePlateDetection, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.TrailingMode, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.TrailCacheLength, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.LightPet, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.Homing, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.IsADD2Turret, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.TurretFeature, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.MinionTargettingFeature, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.MinionSacrificable, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.DontAttachHideToAlpha, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.NeedsUUID, nextProjectile);
 			Array.Resize(ref ProjectileID.Sets.StardustDragon, nextProjectile);
+			Array.Resize(ref ProjectileID.Sets.NoLiquidDistortion, nextProjectile);
 			for (int k = ProjectileID.Count; k < nextProjectile; k++)
 			{
+				ProjectileID.Sets.YoyosLifeTimeMultiplier[k] = -1;
+				ProjectileID.Sets.YoyosMaximumRange[k] = 200f;
+				ProjectileID.Sets.YoyosTopSpeed[k] = 10f;
+				ProjectileID.Sets.CanDistortWater[k] = true;
 				Main.projectileLoaded[k] = true;
 				Main.projFrames[k] = 1;
 				ProjectileID.Sets.TrailingMode[k] = -1;
 				ProjectileID.Sets.TrailCacheLength[k] = 10;
+			}
+			Array.Resize(ref Projectile.perIDStaticNPCImmunity, nextProjectile);
+			for (int i = 0; i < nextProjectile; i++)
+			{
+				Projectile.perIDStaticNPCImmunity[i] = new int[200];
 			}
 
 			ModLoader.BuildGlobalHook(ref HookSetDefaults, globalProjectiles, g => g.SetDefaults);
@@ -329,13 +348,13 @@ namespace Terraria.ModLoader
 		{
 			foreach (var hook in HookCanCutTiles)
 			{
-				return (hook(projectile));
+				bool? canCutTiles = hook(projectile);
+				if (canCutTiles.HasValue)
+				{
+					return canCutTiles.Value;
+				}
 			}
-			if (projectile.modProjectile != null)
-			{
-				return projectile.modProjectile.CanCutTiles();
-			}
-			return null;
+			return projectile.modProjectile?.CanCutTiles();
 		}
 
 		//in Terraria.Projectile.Kill before if statements determining kill behavior add
@@ -429,13 +448,13 @@ namespace Terraria.ModLoader
 			return flag;
 		}
 		//in Terraria.Projectile.Damage before calling StatusNPC call this and add local knockback variable
-		public static void ModifyHitNPC(Projectile projectile, NPC target, ref int damage, ref float knockback, ref bool crit)
+		public static void ModifyHitNPC(Projectile projectile, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
-			projectile.modProjectile?.ModifyHitNPC(target, ref damage, ref knockback, ref crit);
+			projectile.modProjectile?.ModifyHitNPC(target, ref damage, ref knockback, ref crit, ref hitDirection);
 
 			foreach (var hook in HookModifyHitNPC)
 			{
-				hook(projectile, target, ref damage, ref knockback, ref crit);
+				hook(projectile, target, ref damage, ref knockback, ref crit, ref hitDirection);
 			}
 		}
 		//in Terraria.Projectile.Damage before penetration check for NPCs call this

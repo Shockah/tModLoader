@@ -9,6 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using ExampleMod.NPCs.PuritySpirit;
 using Terraria.ModLoader.IO;
+using Terraria.GameInput;
 
 namespace ExampleMod
 {
@@ -161,7 +162,7 @@ namespace ExampleMod
 			}
 		}
 
-		public override void SetControls()
+		public override void ProcessTriggers(TriggersSet triggersSet)
 		{
 			if (ExampleMod.RandomBuffHotKey.JustPressed)
 			{
@@ -191,7 +192,7 @@ namespace ExampleMod
 				}
 				if (heroLives == 1)
 				{
-					player.AddBuff(mod.BuffType("HeroOne"), 2);
+					player.AddBuff(mod.BuffType<Buffs.HeroOne>(), 2); // Consider using this alternate method call for maintainable code.
 				}
 				else if (heroLives == 2)
 				{
@@ -485,14 +486,14 @@ namespace ExampleMod
 					{
 						player.hurtCooldowns[k] = player.longInvince ? 180 : 120;
 					}
-					Main.PlaySound(2, (int)player.position.X, (int)player.position.Y, 29);
+					Main.PlaySound(SoundID.Item29, player.position);
 					reviveTime = 60;
 					return false;
 				}
 			}
-			if (healHurt > 0 && damage == 10.0 && hitDirection == 0 && deathText == " " + Lang.dt[1])
+			if (healHurt > 0 && damage == 10.0 && hitDirection == 0 && damageSource.SourceOtherIndex == 8)
 			{
-				deathText = " was dissolved by holy powers";
+				damageSource = PlayerDeathReason.ByCustomReason(" was dissolved by holy powers");
 			}
 			return true;
 		}

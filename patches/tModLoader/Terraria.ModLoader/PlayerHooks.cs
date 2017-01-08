@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader.Default;
 using Terraria.DataStructures;
+using Terraria.GameInput;
 
 namespace Terraria.ModLoader
 {
@@ -483,6 +484,14 @@ namespace Terraria.ModLoader
 			}
 		}
 
+		public static void ProcessTriggers(Player player, TriggersSet triggersSet)
+		{
+			foreach (ModPlayer modPlayer in player.modPlayers)
+			{
+				modPlayer.ProcessTriggers(triggersSet);
+			}
+		}
+
 		public static void GetWeaponKnockback(Player player, Item item, ref float knockback)
 		{
 			foreach (ModPlayer modPlayer in player.modPlayers)
@@ -588,7 +597,7 @@ namespace Terraria.ModLoader
 			return flag;
 		}
 
-		public static void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit)
+		public static void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
 			if (proj.npcProj || proj.trap)
 			{
@@ -597,7 +606,7 @@ namespace Terraria.ModLoader
 			Player player = Main.player[proj.owner];
 			foreach (ModPlayer modPlayer in player.modPlayers)
 			{
-				modPlayer.ModifyHitNPCWithProj(proj, target, ref damage, ref knockback, ref crit);
+				modPlayer.ModifyHitNPCWithProj(proj, target, ref damage, ref knockback, ref crit, ref hitDirection);
 			}
 		}
 

@@ -10,7 +10,7 @@ namespace ExampleMod.NPCs
 	{
 		public override void ResetEffects(NPC npc)
 		{
-            npc.GetModInfo<ExampleNPCInfo>(mod).eFlames = false;
+			npc.GetModInfo<ExampleNPCInfo>(mod).eFlames = false;
 		}
 
 		public override void UpdateLifeRegen(NPC npc, ref int damage)
@@ -39,9 +39,9 @@ namespace ExampleMod.NPCs
 					Item.NewItem((int)npc.position.X, (int)npc.position.Y, npc.width, npc.height, mod.ItemType("BossItem"));
 				}
 			}
-			if (((npc.type == NPCID.Pumpking && Main.pumpkinMoon) || (npc.type == NPCID.IceQueen && Main.snowMoon)) && NPC.waveCount > 10)
+			if (((npc.type == NPCID.Pumpking && Main.pumpkinMoon) || (npc.type == NPCID.IceQueen && Main.snowMoon)) && NPC.waveNumber > 10)
 			{
-				int chance = NPC.waveCount - 10;
+				int chance = NPC.waveNumber - 10;
 				if (Main.expertMode)
 				{
 					chance++;
@@ -49,7 +49,7 @@ namespace ExampleMod.NPCs
 				if (Main.rand.Next(5) < chance)
 				{
 					int stack = 1;
-					if (NPC.waveCount >= 15)
+					if (NPC.waveNumber >= 15)
 					{
 						stack = Main.rand.Next(4, 7);
 						if (Main.expertMode)
@@ -138,6 +138,25 @@ namespace ExampleMod.NPCs
 				spawnRate = (int)(spawnRate * 5f);
 				maxSpawns = (int)(maxSpawns * 5f);
 			}
-        }
+		}
+
+		public override void SetupShop(int type, Chest shop, ref int nextSlot)
+		{
+			if (type == NPCID.Dryad)
+			{
+				shop.item[nextSlot].SetDefaults(mod.ItemType<Items.CarKey>());
+				nextSlot++;
+
+				shop.item[nextSlot].SetDefaults(mod.ItemType<Items.CarKey>());
+				shop.item[nextSlot].shopCustomPrice = new int?(2);
+				shop.item[nextSlot].shopSpecialCurrency = CustomCurrencyID.DefenderMedals;
+				nextSlot++;
+
+				shop.item[nextSlot].SetDefaults(mod.ItemType<Items.CarKey>());
+				shop.item[nextSlot].shopCustomPrice = new int?(3);
+				shop.item[nextSlot].shopSpecialCurrency = ExampleMod.FaceCustomCurrencyID;
+				nextSlot++;
+			}
+		}
 	}
 }

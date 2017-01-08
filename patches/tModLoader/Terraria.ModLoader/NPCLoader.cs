@@ -11,11 +11,13 @@ namespace Terraria.ModLoader
 {
 	public static class NPCLoader
 	{
+		internal static bool loaded = false;
 		private static int nextNPC = NPCID.Count;
 		internal static readonly IList<ModNPC> npcs = new List<ModNPC>();
 		internal static readonly IList<GlobalNPC> globalNPCs = new List<GlobalNPC>();
 		internal static readonly IList<NPCInfo> infoList = new List<NPCInfo>();
 		internal static readonly IDictionary<string, int> infoIndexes = new Dictionary<string, int>();
+		internal static readonly IDictionary<int, int> bannerToItem = new Dictionary<int, int>();
 		private static int vanillaSkeletonCount = NPCID.Sets.Skeletons.Count;
 		private static readonly int[] shopToNPC = new int[Main.MaxShopIDs - 1];
 		//in Terraria.Item.NewItem after setting Main.item[400] add
@@ -50,7 +52,7 @@ namespace Terraria.ModLoader
 		private static DelegateModifyHitByItem[] HookModifyHitByItem;
 		private static Action<NPC, Player, Item, int, float, bool>[] HookOnHitByItem;
 		private static Func<NPC, Projectile, bool?>[] HookCanBeHitByProjectile;
-		private delegate void DelegateModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit);
+		private delegate void DelegateModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit, ref int hitDirection);
 		private static DelegateModifyHitByProjectile[] HookModifyHitByProjectile;
 		private static Action<NPC, Projectile, int, float, bool>[] HookOnHitByProjectile;
 		private delegate bool DelegateStrikeNPC(NPC npc, ref double damage, int defense, ref float knockback, int hitDirection, ref bool crit);
@@ -123,6 +125,7 @@ namespace Terraria.ModLoader
 			shopToNPC[18] = NPCID.Stylist;
 			shopToNPC[19] = NPCID.TravellingMerchant;
 			shopToNPC[20] = NPCID.SkeletonMerchant;
+			shopToNPC[21] = NPCID.DD2Bartender;
 		}
 
 		internal static int ReserveNPCID()
@@ -145,7 +148,7 @@ namespace Terraria.ModLoader
 		//in Terraria.Main.DrawNPCs and Terraria.NPC.NPCLoot remove type too high check
 		//replace a lot of 540 immediates
 		//in Terraria.GameContent.UI.EmoteBubble make CountNPCs internal
-		internal static void ResizeArrays()
+		internal static void ResizeArrays(bool unloading)
 		{
 			Array.Resize(ref Main.NPCLoaded, nextNPC);
 			Array.Resize(ref Main.nextNPC, nextNPC);
@@ -154,10 +157,16 @@ namespace Terraria.ModLoader
 			Array.Resize(ref Main.npcAltTextures, nextNPC);
 			Array.Resize(ref Main.npcCatchable, nextNPC);
 			Array.Resize(ref Main.npcName, nextNPC);
+			Array.Resize(ref Main.npcNameEnglish, nextNPC);
 			Array.Resize(ref Main.npcFrameCount, nextNPC);
 			Array.Resize(ref NPC.killCount, nextNPC);
 			Array.Resize(ref NPC.npcsFoundForCheckActive, nextNPC);
 			Array.Resize(ref EmoteBubble.CountNPCs, nextNPC);
+			Array.Resize(ref NPCID.Sets.TrailingMode, nextNPC);
+			Array.Resize(ref NPCID.Sets.BelongsToInvasionOldOnesArmy, nextNPC);
+			Array.Resize(ref NPCID.Sets.TeleportationImmune, nextNPC);
+			Array.Resize(ref NPCID.Sets.UsesNewTargetting, nextNPC);
+			Array.Resize(ref NPCID.Sets.FighterUsesDD2PortalAppearEffect, nextNPC);
 			Array.Resize(ref NPCID.Sets.StatueSpawnedDropRarity, nextNPC);
 			Array.Resize(ref NPCID.Sets.NoEarlymodeLootWhenSpawnedFromStatue, nextNPC);
 			Array.Resize(ref NPCID.Sets.NeedsExpertScaling, nextNPC);
@@ -182,10 +191,12 @@ namespace Terraria.ModLoader
 			Array.Resize(ref NPCID.Sets.MustAlwaysDraw, nextNPC);
 			Array.Resize(ref NPCID.Sets.ExtraTextureCount, nextNPC);
 			Array.Resize(ref NPCID.Sets.NPCFramingGroup, nextNPC);
+			Array.Resize(ref NPCID.Sets.TownNPCsFramingGroups, nextNPC);
 			for (int k = NPCID.Count; k < nextNPC; k++)
 			{
 				Main.NPCLoaded[k] = true;
 				Main.npcFrameCount[k] = 1;
+				NPCID.Sets.TrailingMode[k] = -1;
 				NPCID.Sets.StatueSpawnedDropRarity[k] = -1f;
 				NPCID.Sets.TrailCacheLength[k] = 10;
 				NPCID.Sets.DangerDetectRange[k] = -1;
@@ -248,15 +259,22 @@ namespace Terraria.ModLoader
 			ModLoader.BuildGlobalHook(ref HookTownNPCAttackSwing, globalNPCs, g => g.TownNPCAttackSwing);
 			ModLoader.BuildGlobalHook(ref HookDrawTownAttackGun, globalNPCs, g => g.DrawTownAttackGun);
 			ModLoader.BuildGlobalHook(ref HookDrawTownAttackSwing, globalNPCs, g => g.DrawTownAttackSwing);
+
+			if (!unloading)
+			{
+				loaded = true;
+			}
 		}
 
 		internal static void Unload()
 		{
+			loaded = false;
 			npcs.Clear();
 			nextNPC = NPCID.Count;
 			globalNPCs.Clear();
 			infoList.Clear();
 			infoIndexes.Clear();
+			bannerToItem.Clear();
 			while (NPCID.Sets.Skeletons.Count > vanillaSkeletonCount)
 			{
 				NPCID.Sets.Skeletons.RemoveAt(NPCID.Sets.Skeletons.Count - 1);
@@ -720,13 +738,13 @@ namespace Terraria.ModLoader
 			return flag;
 		}
 		//in Terraria.Projectile.Damage call after ProjectileLoader.ModifyHitNPC
-		public static void ModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit)
+		public static void ModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
-			npc.modNPC?.ModifyHitByProjectile(projectile, ref damage, ref knockback, ref crit);
+			npc.modNPC?.ModifyHitByProjectile(projectile, ref damage, ref knockback, ref crit, ref hitDirection);
 
 			foreach (var hook in HookModifyHitByProjectile)
 			{
-				hook(npc, projectile, ref damage, ref knockback, ref crit);
+				hook(npc, projectile, ref damage, ref knockback, ref crit, ref hitDirection);
 			}
 		}
 		//in Terraria.Projectile.Damage call after ProjectileLoader.OnHitNPC

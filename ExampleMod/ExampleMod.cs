@@ -1,4 +1,3 @@
-using System;
 using Terraria;
 using Terraria.Graphics.Effects;
 using Terraria.Graphics.Shaders;
@@ -8,12 +7,12 @@ using ExampleMod.NPCs.PuritySpirit;
 using ExampleMod.Tiles;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using ExampleMod.UI;
 using Terraria.UI;
 using Terraria.DataStructures;
+using Terraria.GameContent.UI;
 
 namespace ExampleMod
 {
@@ -25,6 +24,7 @@ namespace ExampleMod
 		private UserInterface exampleUserInterface;
 		internal ExampleUI exampleUI;
 		public static ModHotKey RandomBuffHotKey;
+		public static int FaceCustomCurrencyID;
 
 		public ExampleMod()
 		{
@@ -45,6 +45,7 @@ namespace ExampleMod
 				AddBossHeadTexture(captiveElement2Head + k);
 			}
 			RandomBuffHotKey = RegisterHotKey("Random Buff", "P");
+			FaceCustomCurrencyID = CustomCurrencyManager.RegisterCurrency(new ExampleCustomCurrency(ItemType<Items.Face>(), 999L));
 			if (!Main.dedServ)
 			{
 				AddEquipTexture(null, EquipType.Legs, "ExampleRobe_Legs", "ExampleMod/Items/Armor/ExampleRobe_Legs");
@@ -125,11 +126,11 @@ namespace ExampleMod
 		{
 			if (Main.myPlayer != -1 && !Main.gameMenu)
 			{
-				if (Main.player[Main.myPlayer].active && Main.player[Main.myPlayer].FindBuffIndex(this.BuffType("CarMount")) != -1)
+				if (Main.LocalPlayer.active && Main.LocalPlayer.FindBuffIndex(this.BuffType("CarMount")) != -1)
 				{
 					music = this.GetSoundSlot(SoundType.Music, "Sounds/Music/DriveMusic");
 				}
-				if (Main.player[Main.myPlayer].active && Main.player[Main.myPlayer].GetModPlayer<ExamplePlayer>(this).ZoneExample)
+				if (Main.LocalPlayer.active && Main.LocalPlayer.GetModPlayer<ExamplePlayer>(this).ZoneExample)
 				{
 					music = this.GetSoundSlot(SoundType.Music, "Sounds/Music/DriveMusic");
 				}
@@ -149,7 +150,7 @@ namespace ExampleMod
 		{
 			if (!Main.gameMenu)
 			{
-				ExampleWorld world = (ExampleWorld)GetModWorld("ExampleWorld");
+				ExampleWorld world = GetModWorld<ExampleWorld>();
 				if (world.VolcanoTremorTime > 0)
 				{
 					if (world.VolcanoTremorTime % ShakeLength == 0)
@@ -190,275 +191,6 @@ namespace ExampleMod
 				}
 			}
 			return Transform;
-		}
-
-		public override void ChatInput(string text)
-		{
-			if (text[0] != '/')
-			{
-				return;
-			}
-			text = text.Substring(1);
-			int index = text.IndexOf(' ');
-			string command;
-			string[] args;
-			if (index < 0)
-			{
-				command = text;
-				args = new string[0];
-			}
-			else
-			{
-				command = text.Substring(0, index);
-				args = text.Substring(index + 1).Split(' ');
-			}
-			if (command == "npc")
-			{
-				NPCCommand(args);
-			}
-			else if (command == "npcType")
-			{
-				NPCTypeCommand(args);
-			}
-			else if (command == "addTime")
-			{
-				AddTimeCommand(args);
-			}
-			else if (command == "item")
-			{
-				ItemCommand(args);
-			}
-			else if (command == "score")
-			{
-				ScoreCommand(args);
-			}
-			else if (command == "sound")
-			{
-				SoundCommand(args);
-			}
-			else if (command == "coin")
-			{
-				ExampleUI.visible = true;
-			}
-		}
-
-		private void NPCCommand(string[] args)
-		{
-			int type;
-			if (args.Length == 0 || !Int32.TryParse(args[0], out type))
-			{
-				Main.NewText("Usage: /npc type [x] [y] [number]");
-				Main.NewText("x and y may be preceded by ~ to use position relative to player");
-				return;
-			}
-			try
-			{
-				Player player = Main.player[Main.myPlayer];
-				int x;
-				int y;
-				int num = 1;
-				if (args.Length > 2)
-				{
-					bool relativeX = false;
-					bool relativeY = false;
-					if (args[1][0] == '~')
-					{
-						relativeX = true;
-						args[1] = args[1].Substring(1);
-					}
-					if (args[2][0] == '~')
-					{
-						relativeY = true;
-						args[2] = args[2].Substring(1);
-					}
-					if (!Int32.TryParse(args[1], out x))
-					{
-						x = 0;
-						relativeX = true;
-					}
-					if (!Int32.TryParse(args[2], out y))
-					{
-						y = 0;
-						relativeY = true;
-					}
-					if (relativeX)
-					{
-						x += (int)player.Bottom.X;
-					}
-					if (relativeY)
-					{
-						y += (int)player.Bottom.Y;
-					}
-					if (args.Length > 3)
-					{
-						if (!Int32.TryParse(args[3], out num))
-						{
-							num = 1;
-						}
-					}
-				}
-				else
-				{
-					x = (int)player.Bottom.X;
-					y = (int)player.Bottom.Y;
-				}
-				for (int k = 0; k < num; k++)
-				{
-					if (Main.netMode == 0)
-					{
-						NPC.NewNPC(x, y, type);
-					}
-					else if (Main.netMode == 1)
-					{
-						var netMessage = GetPacket();
-						netMessage.Write((byte)ExampleModMessageType.SpawnNPC);
-						netMessage.Write(x);
-						netMessage.Write(y);
-						netMessage.Write(type);
-						netMessage.Send();
-					}
-				}
-			}
-			catch
-			{
-				Main.NewText("Usage: /npc type [x] [y] [number]");
-				Main.NewText("x and y may be preceded by ~ to use position relative to player");
-			}
-		}
-
-		private void NPCTypeCommand(string[] args)
-		{
-			if (args.Length < 2)
-			{
-				Main.NewText("Usage: /npcType modName npcName");
-				return;
-			}
-			Mod mod = ModLoader.GetMod(args[0]);
-			int type = mod == null ? 0 : mod.NPCType(args[1]);
-			Main.NewText(type.ToString(), 255, 255, 0);
-		}
-
-		private void AddTimeCommand(string[] args)
-		{
-			int amount;
-			if (args.Length == 0 || !Int32.TryParse(args[0], out amount))
-			{
-				Main.NewText("Usage: /addTime numTicks");
-				return;
-			}
-			Main.time += amount;
-		}
-
-		private void ItemCommand(string[] args)
-		{
-			if (args.Length == 0)
-			{
-				Main.NewText("Usage: /item [type|name] [stack]");
-				return;
-			}
-			try
-			{
-				Player player = Main.player[Main.myPlayer];
-				int type;
-				if (!Int32.TryParse(args[0], out type))
-				{
-					args[0] = args[0].Replace("_", " ");
-					for (int k = 0; k < Main.itemName.Length; k++)
-					{
-						if (args[0] == Main.itemName[k])
-						{
-							type = k;
-							break;
-						}
-					}
-				}
-				int stack;
-				if (args.Length < 2 || !Int32.TryParse(args[1], out stack))
-				{
-					stack = 1;
-				}
-				player.QuickSpawnItem(type, stack);
-			}
-			catch
-			{
-				Main.NewText("Usage: /item [type|name] [stack]");
-			}
-		}
-
-		private void ScoreCommand(string[] args)
-		{
-			if (args.Length < 2 || (args[1] != "add" && args[1] != "set" && args[1] != "reset" && args[1] != "get"))
-			{
-				Main.NewText("Usage: /score playerName <get|add|set|reset>");
-				return;
-			}
-			int player;
-			for (player = 0; player < 255; player++)
-			{
-				if (Main.player[player].active && Main.player[player].name == args[0])
-				{
-					break;
-				}
-			}
-			if (player == 255)
-			{
-				Main.NewText("Could not find player: " + args[0]);
-				return;
-			}
-			ExamplePlayer modPlayer = Main.player[player].GetModPlayer<ExamplePlayer>(this);
-			if (args[1] == "get")
-			{
-				Main.NewText(args[0] + "'s score is " + modPlayer.score);
-				return;
-			}
-			if (args[1] == "reset")
-			{
-				modPlayer.score = 0;
-				Main.NewText(args[0] + "'s score is now " + modPlayer.score);
-				return;
-			}
-			if (args.Length < 3)
-			{
-				Main.NewText("Usage: /score playerName <add|set> amount");
-				return;
-			}
-			int arg;
-			if (!Int32.TryParse(args[2], out arg))
-			{
-				Main.NewText(args[2] + " is not an integer");
-				return;
-			}
-			if (args[1] == "add")
-			{
-				modPlayer.score += arg;
-			}
-			else
-			{
-				modPlayer.score = arg;
-			}
-			Main.NewText(args[0] + "'s score is now " + modPlayer.score);
-		}
-
-		private void SoundCommand(string[] args)
-		{
-			if (args.Length < 2)
-			{
-				Main.NewText("Usage: /sound type style");
-				return;
-			}
-			int type;
-			if (!Int32.TryParse(args[0], out type))
-			{
-				Main.NewText(args[0] + " is not an integer");
-				return;
-			}
-			int style;
-			if (!Int32.TryParse(args[1], out style))
-			{
-				Main.NewText(args[1] + " is not an integer");
-				return;
-			}
-			Main.PlaySound(type, -1, -1, style);
 		}
 
 		public override void ModifyInterfaceLayers(List<MethodSequenceListItem> layers)
@@ -532,7 +264,7 @@ namespace ExampleMod
 				// This message sent by the server to initialize the Volcano Tremor on clients
 				case ExampleModMessageType.SetTremorTime:
 					int tremorTime = reader.ReadInt32();
-					ExampleWorld world = (ExampleWorld)GetModWorld("ExampleWorld");
+					ExampleWorld world = GetModWorld<ExampleWorld>();
 					world.VolcanoTremorTime = tremorTime;
 					break;
 				// This message sent by the server to initialize the Volcano Rubble.
@@ -557,9 +289,6 @@ namespace ExampleMod
 							ErrorLogger.Log("Error: Projectile not found");
 						}
 					}
-					break;
-				case ExampleModMessageType.SpawnNPC:
-					NPC.NewNPC(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 					break;
 				case ExampleModMessageType.PuritySpirit:
 					PuritySpirit spirit = Main.npc[reader.ReadInt32()].modNPC as PuritySpirit;
@@ -597,7 +326,6 @@ namespace ExampleMod
 	{
 		SetTremorTime,
 		VolcanicRubbleMultiplayerFix,
-		SpawnNPC,
 		PuritySpirit,
 		HeroLives
 	}

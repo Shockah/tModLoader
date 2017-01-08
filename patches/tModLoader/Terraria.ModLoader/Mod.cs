@@ -11,6 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader.Exceptions;
 using Terraria.ModLoader.IO;
 using Terraria.Utilities;
+using Terraria.Audio;
 
 namespace Terraria.ModLoader
 {
@@ -20,8 +21,8 @@ namespace Terraria.ModLoader
 		public Assembly Code { get; internal set; }
 
 		public virtual string Name => File.name;
-		public Version tModLoaderVersion => File?.tModLoaderVersion ?? ModLoader.version;
-		public Version Version => File?.version ?? ModLoader.version;
+		public virtual Version tModLoaderVersion => File.tModLoaderVersion;
+		public virtual Version Version => File.version;
 
 		public ModProperties Properties { get; protected set; }
 		public ModSide Side { get; internal set; }
@@ -39,6 +40,7 @@ namespace Terraria.ModLoader
 		internal readonly IDictionary<string, ModDust> dusts = new Dictionary<string, ModDust>();
 		internal readonly IDictionary<string, ModTile> tiles = new Dictionary<string, ModTile>();
 		internal readonly IDictionary<string, GlobalTile> globalTiles = new Dictionary<string, GlobalTile>();
+		internal readonly IDictionary<string, ModTileEntity> tileEntities = new Dictionary<string, ModTileEntity>();
 		internal readonly IDictionary<string, ModWall> walls = new Dictionary<string, ModWall>();
 		internal readonly IDictionary<string, GlobalWall> globalWalls = new Dictionary<string, GlobalWall>();
 		internal readonly IDictionary<string, ModProjectile> projectiles = new Dictionary<string, ModProjectile>();
@@ -79,6 +81,11 @@ namespace Terraria.ModLoader
 
 		internal void Autoload()
 		{
+			if (GetType().GetMethod("ChatInput", new Type[] { typeof(string) }) != null)
+			{
+				throw new OldHookException("Mod.ChatInput");
+			}
+
 			if (!Main.dedServ && File != null)
 			{
 				foreach (var file in File)
@@ -155,7 +162,7 @@ namespace Terraria.ModLoader
 
 			IList<Type> modGores = new List<Type>();
 			IList<Type> modSounds = new List<Type>();
-			foreach (Type type in Code.GetTypes())
+			foreach (Type type in Code.GetTypes().OrderBy(type=>type.FullName))
 			{
 				if (type.IsAbstract)
 				{
@@ -180,6 +187,10 @@ namespace Terraria.ModLoader
 				else if (type.IsSubclassOf(typeof(GlobalTile)))
 				{
 					AutoloadGlobalTile(type);
+				}
+				else if (type.IsSubclassOf(typeof(ModTileEntity)))
+				{
+					AutoloadTileEntity(type);
 				}
 				else if (type.IsSubclassOf(typeof(ModWall)))
 				{
@@ -269,6 +280,10 @@ namespace Terraria.ModLoader
 				{
 					AutoloadGlobalRecipe(type);
 				}
+				else if (type.IsSubclassOf(typeof(ModCommand)))
+				{
+					AutoloadCommand(type);
+				}
 			}
 			if (Properties.AutoloadGores)
 			{
@@ -282,6 +297,14 @@ namespace Terraria.ModLoader
 			{
 				AutoloadBackgrounds();
 			}
+		}
+
+		public void AddCommand(string name, ModCommand mc)
+		{
+			mc.Name = name;
+			mc.Mod = this;
+			
+			CommandManager.Add(mc);
 		}
 
 		public void AddItem(string name, ModItem item, string texture)
@@ -305,6 +328,10 @@ namespace Terraria.ModLoader
 			item.item.name = name;
 			item.item.ResetStats(id);
 			item.item.modItem = item;
+			if (items.ContainsKey(name))
+			{
+				throw new Exception("You tried to add 2 ModItems with the same name: " + name + ". Maybe 2 classes share a classname but in different namespaces while autoloading or you manually called AddItem with 2 items of the same name.");
+			}
 			items[name] = item;
 			ItemLoader.items.Add(item);
 			item.texture = texture;
@@ -335,6 +362,11 @@ namespace Terraria.ModLoader
 				return 0;
 			}
 			return item.item.type;
+		}
+
+		public int ItemType<T>() where T : ModItem
+		{
+			return ItemType(typeof(T).Name);
 		}
 
 		public void AddGlobalItem(string name, GlobalItem globalItem)
@@ -534,6 +566,11 @@ namespace Terraria.ModLoader
 			return dust.Type;
 		}
 
+		public int DustType<T>() where T : ModDust
+		{
+			return DustType(typeof(T).Name);
+		}
+
 		private void AutoloadDust(Type type)
 		{
 			ModDust dust = (ModDust)Activator.CreateInstance(type);
@@ -579,6 +616,11 @@ namespace Terraria.ModLoader
 			return (int)tile.Type;
 		}
 
+		public int TileType<T>() where T : ModTile
+		{
+			return TileType(typeof(T).Name);
+		}
+
 		public void AddGlobalTile(string name, GlobalTile globalTile)
 		{
 			globalTile.mod = this;
@@ -622,6 +664,50 @@ namespace Terraria.ModLoader
 			}
 		}
 
+		public void AddTileEntity(string name, ModTileEntity entity)
+		{
+			int id = ModTileEntity.ReserveTileEntityID();
+			entity.mod = this;
+			entity.Name = name;
+			entity.Type = id;
+			entity.type = (byte)id;
+			tileEntities[name] = entity;
+			ModTileEntity.tileEntities.Add(entity);
+		}
+
+		public ModTileEntity GetTileEntity(string name)
+		{
+			if (tileEntities.ContainsKey(name))
+			{
+				return tileEntities[name];
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		public int TileEntityType(string name)
+		{
+			ModTileEntity tileEntity = GetTileEntity(name);
+			if (tileEntity == null)
+			{
+				return -1;
+			}
+			return tileEntity.Type;
+		}
+
+		private void AutoloadTileEntity(Type type)
+		{
+			ModTileEntity tileEntity = (ModTileEntity)Activator.CreateInstance(type);
+			tileEntity.mod = this;
+			string name = type.Name;
+			if (tileEntity.Autoload(ref name))
+			{
+				AddTileEntity(name, tileEntity);
+			}
+		}
+
 		public void AddWall(string name, ModWall wall, string texture)
 		{
 			int id = WallLoader.ReserveWallID();
@@ -653,6 +739,11 @@ namespace Terraria.ModLoader
 				return 0;
 			}
 			return (int)wall.Type;
+		}
+
+		public int WallType<T>() where T : ModWall
+		{
+			return WallType(typeof(T).Name);
 		}
 
 		public void AddGlobalWall(string name, GlobalWall globalWall)
@@ -730,6 +821,11 @@ namespace Terraria.ModLoader
 				return 0;
 			}
 			return projectile.projectile.type;
+		}
+		
+		public int ProjectileType<T>() where T : ModProjectile
+		{
+			return ProjectileType(typeof(T).Name);
 		}
 
 		public void AddGlobalProjectile(string name, GlobalProjectile globalProjectile)
@@ -826,6 +922,11 @@ namespace Terraria.ModLoader
 				return 0;
 			}
 			return npc.npc.type;
+		}
+		
+		public int NPCType<T>() where T : ModNPC
+		{
+			return NPCType(typeof(T).Name);
 		}
 
 		public void AddGlobalNPC(string name, GlobalNPC globalNPC)
@@ -987,6 +1088,11 @@ namespace Terraria.ModLoader
 			return buff.Type;
 		}
 
+		public int BuffType<T>() where T : ModBuff
+		{
+			return BuffType(typeof(T).Name);
+		}
+
 		public void AddGlobalBuff(string name, GlobalBuff globalBuff)
 		{
 			globalBuff.mod = this;
@@ -1123,6 +1229,11 @@ namespace Terraria.ModLoader
 			return mountData.Type;
 		}
 
+		public int MountType<T>() where T : ModMountData
+		{
+			return MountType(typeof(T).Name);
+		}
+
 		public void AddModWorld(string name, ModWorld modWorld)
 		{
 			modWorld.Name = name;
@@ -1152,6 +1263,11 @@ namespace Terraria.ModLoader
 			{
 				return null;
 			}
+		}
+		
+		public T GetModWorld<T>() where T : ModWorld
+		{
+			return (T)GetModWorld(typeof(T).Name);
 		}
 
 		public void AddUgBgStyle(string name, ModUgBgStyle ugBgStyle)
@@ -1350,6 +1466,11 @@ namespace Terraria.ModLoader
 			return ModGore.GetGoreSlot(Name + '/' + name);
 		}
 
+		public int GetGoreSlot<T>() where T : ModGore
+		{
+			return GetGoreSlot(typeof(T).Name);
+		}
+
 		private void AutoloadGores(IList<Type> modGores)
 		{
 			var modGoreNames = modGores.ToDictionary(t => t.Namespace + "." + t.Name);
@@ -1380,6 +1501,11 @@ namespace Terraria.ModLoader
 			return SoundLoader.GetSoundSlot(type, Name + '/' + name);
 		}
 
+		public LegacySoundStyle GetLegacySoundSlot(SoundType type, string name)
+		{
+			return SoundLoader.GetLegacySoundSlot(type, Name + '/' + name);
+		}
+
 		private void AutoloadSounds(IList<Type> modSounds)
 		{
 			var modSoundNames = modSounds.ToDictionary(t => t.Namespace + "." + t.Name);
@@ -1405,7 +1531,7 @@ namespace Terraria.ModLoader
 				}
 				ModSound modSound = null;
 				Type t;
-				if (modSoundNames.TryGetValue(sound.Replace('/', '.'), out t))
+				if (modSoundNames.TryGetValue((Name + '/' + sound).Replace('/', '.'), out t))
 					modSound = (ModSound)Activator.CreateInstance(t);
 
 				AddSound(soundType, Name + '/' + sound, modSound);
@@ -1449,6 +1575,15 @@ namespace Terraria.ModLoader
 			{
 				AddGlobalRecipe(name, globalRecipe);
 			}
+		}
+
+		private void AutoloadCommand(Type type)
+		{
+			var mc = (ModCommand) Activator.CreateInstance(type);
+			mc.Mod = this;
+			var name = type.Name;
+			if (mc.Autoload(ref name))
+				AddCommand(name, mc);
 		}
 
 		public GlobalRecipe GetGlobalRecipe(string name)
@@ -1581,8 +1716,13 @@ namespace Terraria.ModLoader
 			{
 				Main.npcTexture[npc.npc.type] = ModLoader.GetTexture(npc.texture);
 				Main.npcName[npc.npc.type] = npc.npc.name;
+				Main.npcNameEnglish[npc.npc.type] = npc.npc.name;
 				NPCLoader.SetupNPCInfo(npc.npc);
 				npc.SetDefaults();
+				if(npc.banner !=0)
+				{
+					NPCLoader.bannerToItem[npc.banner] = npc.bannerItem;
+				}
 				if (npc.npc.lifeMax > 32767 || npc.npc.boss)
 				{
 					Main.npcLifeBytes[npc.npc.type] = 4;
@@ -1641,6 +1781,7 @@ namespace Terraria.ModLoader
 			dusts.Clear();
 			tiles.Clear();
 			globalTiles.Clear();
+			tileEntities.Clear();
 			walls.Clear();
 			globalWalls.Clear();
 			projectiles.Clear();

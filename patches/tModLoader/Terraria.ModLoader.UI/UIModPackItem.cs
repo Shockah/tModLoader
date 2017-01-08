@@ -91,9 +91,9 @@ namespace Terraria.ModLoader.UI
 			viewListButton.Top.Set(40f, 0f);
 			viewListButton.PaddingTop -= 2f;
 			viewListButton.PaddingBottom -= 2f;
-			viewListButton.OnMouseOver += new UIElement.MouseEvent(FadedMouseOver);
-			viewListButton.OnMouseOut += new UIElement.MouseEvent(FadedMouseOut);
-			viewListButton.OnClick += new UIElement.MouseEvent(ViewListInfo);
+			viewListButton.OnMouseOver += UICommon.FadedMouseOver;
+			viewListButton.OnMouseOut += UICommon.FadedMouseOut;
+			viewListButton.OnClick += ViewListInfo;
 			base.Append(viewListButton);
 
 			enableListButton = new UITextPanel<string>("Enable this List", 1f, false);
@@ -103,9 +103,9 @@ namespace Terraria.ModLoader.UI
 			enableListButton.Top.Set(40f, 0f);
 			enableListButton.PaddingTop -= 2f;
 			enableListButton.PaddingBottom -= 2f;
-			enableListButton.OnMouseOver += new UIElement.MouseEvent(FadedMouseOver);
-			enableListButton.OnMouseOut += new UIElement.MouseEvent(FadedMouseOut);
-			enableListButton.OnClick += new UIElement.MouseEvent(EnableList);
+			enableListButton.OnMouseOver += UICommon.FadedMouseOver;
+			enableListButton.OnMouseOut += UICommon.FadedMouseOut;
+			enableListButton.OnClick += EnableList;
 			base.Append(enableListButton);
 
 			enableListOnlyButton = new UITextPanel<string>("Enable only this List", 1f, false);
@@ -115,14 +115,14 @@ namespace Terraria.ModLoader.UI
 			enableListOnlyButton.Top.Set(40f, 0f);
 			enableListOnlyButton.PaddingTop -= 2f;
 			enableListOnlyButton.PaddingBottom -= 2f;
-			enableListOnlyButton.OnMouseOver += new UIElement.MouseEvent(FadedMouseOver);
-			enableListOnlyButton.OnMouseOut += new UIElement.MouseEvent(FadedMouseOut);
-			enableListOnlyButton.OnClick += new UIElement.MouseEvent(EnableListOnly);
+			enableListOnlyButton.OnMouseOver += UICommon.FadedMouseOver;
+			enableListOnlyButton.OnMouseOut += UICommon.FadedMouseOut;
+			enableListOnlyButton.OnClick += EnableListOnly;
 			base.Append(enableListOnlyButton);
 
 			deleteButton = new UIImageButton(TextureManager.Load("Images/UI/ButtonDelete"));
 			deleteButton.Top.Set(40f, 0f);
-			deleteButton.OnClick += new UIElement.MouseEvent(this.DeleteButtonClick);
+			deleteButton.OnClick += this.DeleteButtonClick;
 			base.Append(deleteButton);
 		}
 
@@ -172,17 +172,6 @@ namespace Terraria.ModLoader.UI
 			base.MouseOut(evt);
 			this.BackgroundColor = new Color(63, 82, 151) * 0.7f;
 			this.BorderColor = new Color(89, 116, 213) * 0.7f;
-		}
-
-		private static void FadedMouseOver(UIMouseEvent evt, UIElement listeningElement)
-		{
-			Main.PlaySound(12, -1, -1, 1);
-			((UIPanel)evt.Target).BackgroundColor = new Color(73, 94, 171);
-		}
-
-		private static void FadedMouseOut(UIMouseEvent evt, UIElement listeningElement)
-		{
-			((UIPanel)evt.Target).BackgroundColor = new Color(63, 82, 151) * 0.7f;
 		}
 
 		private void DeleteButtonClick(UIMouseEvent evt, UIElement listeningElement)

@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader.IO;
 using Terraria.DataStructures;
+using Terraria.GameInput;
 
 namespace Terraria.ModLoader
 {
@@ -258,7 +259,7 @@ namespace Terraria.ModLoader
 			return null;
 		}
 
-		public virtual void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit)
+		public virtual void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
 		}
 
@@ -367,6 +368,10 @@ namespace Terraria.ModLoader
 		}
 
 		public virtual void OnEnterWorld(Player player)
+		{
+		}
+
+		public virtual void ProcessTriggers(TriggersSet triggersSet)
 		{
 		}
 	}

@@ -39,9 +39,14 @@ namespace Terraria.ModLoader
 			Array.Resize(ref Main.goreLoaded, nextGore);
 			Array.Resize(ref Main.goreTexture, nextGore);
 			Array.Resize(ref ChildSafety.SafeGore, nextGore);
+			Array.Resize(ref GoreID.Sets.SpecialAI, nextGore);
+			Array.Resize(ref GoreID.Sets.DisappearSpeed, nextGore);
+			Array.Resize(ref GoreID.Sets.DisappearSpeedAlpha, nextGore);
 			for (int k = GoreID.Count; k < nextGore; k++)
 			{
 				Main.goreLoaded[k] = true;
+				GoreID.Sets.DisappearSpeed[k] = 1;
+				GoreID.Sets.DisappearSpeedAlpha[k] = 1;
 			}
 			foreach (string texture in gores.Keys)
 			{

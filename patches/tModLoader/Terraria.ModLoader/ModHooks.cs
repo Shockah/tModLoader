@@ -5,15 +5,12 @@ using Microsoft.Xna.Framework;
 using Terraria.DataStructures;
 using Terraria.GameInput;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria.Audio;
 
 namespace Terraria.ModLoader
 {
 	public abstract partial class Mod
 	{
-		public virtual void ChatInput(string text)
-		{
-		}
-
 		public virtual void UpdateMusic(ref int music)
 		{
 		}
@@ -55,18 +52,6 @@ namespace Terraria.ModLoader
 
 	internal static class ModHooks
 	{
-		//in Terraria.Main.do_Update after processing chat input call ModHooks.ChatText(Main.chatText);
-		//in Terraria.Main.do_Update for if statement checking whether chat can be opened remove Main.netMode == 1
-		internal static void ChatInput(string text)
-		{
-			if (text.Length > 0)
-			{
-				foreach (Mod mod in ModLoader.mods.Values)
-				{
-					mod.ChatInput(text);
-				}
-			}
-		}
 		//in Terraria.Main.UpdateMusic before updating music boxes call ModHooks.UpdateMusic(ref this.newMusic);
 		internal static void UpdateMusic(ref int music)
 		{
@@ -76,6 +61,7 @@ namespace Terraria.ModLoader
 			}
 		}
 
+		// Pretty much deprecated. 
 		internal static void HotKeyPressed()
 		{
 			foreach (var modHotkey in ModLoader.modHotKeys)
@@ -84,16 +70,6 @@ namespace Terraria.ModLoader
 				{
 					modHotkey.Value.mod.HotKeyPressed(modHotkey.Value.name);
 				}
-				// TODO - Restructure - ModHotKey class? - KeyDown, KeyUp, Down?
-				//if (PlayerInput.Triggers.JustPressed.KeyStatus[modHotkey.Value.name])
-				//{
-				//}
-				//if (PlayerInput.Triggers.JustReleased.KeyStatus[modHotkey.Value.name])
-				//{
-				//}
-				//if (PlayerInput.Triggers.Old.KeyStatus[modHotkey.Value.name])
-				//{
-				//}
 			}
 		}
 

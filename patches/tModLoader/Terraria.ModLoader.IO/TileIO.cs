@@ -7,6 +7,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent.Tile_Entities;
 using Terraria.ID;
 using Terraria.ModLoader.Default;
+using Terraria.ModLoader.Exceptions;
 
 namespace Terraria.ModLoader.IO
 {
@@ -98,7 +99,7 @@ namespace Terraria.ModLoader.IO
 				}
 				tables.frameImportant[type] = tileTag.GetBool("framed");
 			}
-			foreach (var wallTag in tag.GetList<TagCompound>("tileMap"))
+			foreach (var wallTag in tag.GetList<TagCompound>("wallMap"))
 			{
 				ushort wall = (ushort)wallTag.GetShort("value");
 				string modName = wallTag.GetString("mod");
@@ -539,7 +540,7 @@ namespace Terraria.ModLoader.IO
 						["id"] = entry.Value,
 						["item"] = ItemIO.Save(((TEItemFrame)TileEntity.ByID[entry.Key]).item)
 					}
-				));
+				).ToList());
 			}
 			return tag;
 		}
@@ -677,6 +678,78 @@ namespace Terraria.ModLoader.IO
 				return slot >= Main.numArmorLegs;
 			}
 			return false;
+		}
+
+		internal static List<TagCompound> SaveTileEntities()
+		{
+			List<TagCompound> list = new List<TagCompound>();
+			foreach (KeyValuePair<int, TileEntity> pair in TileEntity.ByID)
+			{
+				if (pair.Value.type >= ModTileEntity.numVanilla)
+				{
+					ModTileEntity tileEntity = (ModTileEntity)pair.Value;
+					list.Add(new TagCompound
+					{
+						["mod"] = tileEntity.mod.Name,
+						["name"] = tileEntity.Name,
+						["X"] = tileEntity.Position.X,
+						["Y"] = tileEntity.Position.Y,
+						["data"] = tileEntity.Save()
+					});
+				}
+			}
+			return list;
+		}
+
+		internal static void LoadTileEntities(IList<TagCompound> list)
+		{
+			foreach (TagCompound tag in list)
+			{
+				Mod mod = ModLoader.GetMod(tag.GetString("mod"));
+				ModTileEntity tileEntity = mod?.GetTileEntity(tag.GetString("name"));
+				ModTileEntity newEntity;
+				if (tileEntity != null)
+				{
+					newEntity = ModTileEntity.ConstructFromBase(tileEntity);
+					newEntity.type = (byte)tileEntity.Type;
+					newEntity.Position = new Point16(tag.GetShort("X"), tag.GetShort("Y"));
+					if (tag.HasTag("data"))
+					{
+						try
+						{
+							newEntity.Load(tag.GetCompound("data"));
+							if (newEntity is MysteryTileEntity)
+							{
+								((MysteryTileEntity)newEntity).TryRestore(ref newEntity);
+							}
+						}
+						catch (Exception e)
+						{
+							throw new CustomModDataException(mod,
+							"Error in reading " + tileEntity.Name + " tile entity data for " + mod.Name, e);
+						}
+					}
+				}
+				else
+				{
+					tileEntity = ModLoader.GetMod("ModLoader").GetTileEntity("MysteryTileEntity");
+					newEntity = ModTileEntity.ConstructFromBase(tileEntity);
+					newEntity.type = (byte)tileEntity.Type;
+					newEntity.Position = new Point16(tag.GetShort("X"), tag.GetShort("Y"));
+					((MysteryTileEntity)newEntity).SetData(tag);
+				}
+				if (tileEntity.ValidTile(newEntity.Position.X, newEntity.Position.Y))
+				{
+					newEntity.ID = TileEntity.AssignNewID();
+					TileEntity.ByID[newEntity.ID] = newEntity;
+					TileEntity other;
+					if (TileEntity.ByPosition.TryGetValue(newEntity.Position, out other))
+					{
+						TileEntity.ByID.Remove(other.ID);
+					}
+					TileEntity.ByPosition[newEntity.Position] = newEntity;
+				}
+			}
 		}
 	}
 }

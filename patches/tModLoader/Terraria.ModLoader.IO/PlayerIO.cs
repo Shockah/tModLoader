@@ -28,6 +28,7 @@ namespace Terraria.ModLoader.IO
 				["miscDyes"] = SaveInventory(player.miscDyes),
 				["bank"] = SaveInventory(player.bank.item),
 				["bank2"] = SaveInventory(player.bank2.item),
+				["bank3"] = SaveInventory(player.bank3.item),
 				["modData"] = SaveModData(player),
 				["modBuffs"] = SaveModBuffs(player)
 			};
@@ -61,6 +62,7 @@ namespace Terraria.ModLoader.IO
 			LoadInventory(player.miscDyes, tag.GetList<TagCompound>("miscDyes"));
 			LoadInventory(player.bank.item, tag.GetList<TagCompound>("bank"));
 			LoadInventory(player.bank2.item, tag.GetList<TagCompound>("bank2"));
+			LoadInventory(player.bank3.item, tag.GetList<TagCompound>("bank3"));
 			LoadModData(player, tag.GetList<TagCompound>("modData"));
 			LoadModBuffs(player, tag.GetList<TagCompound>("modBuffs"));
 		}
