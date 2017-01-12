@@ -89,7 +89,7 @@
      <Compile Include="Terraria.ID\NPCID.cs" />
      <Compile Include="Terraria.ID\PlayerTextureID.cs" />
      <Compile Include="Terraria.ID\PlayerVariantID.cs" />
-@@ -344,6 +_,136 @@
+@@ -344,6 +_,137 @@
      <Compile Include="Terraria.Map\MapHelper.cs" />
      <Compile Include="Terraria.Map\MapTile.cs" />
      <Compile Include="Terraria.Map\WorldMap.cs" />
@@ -170,6 +170,7 @@
 +    <Compile Include="Terraria.ModLoader\GlobalRecipe.cs" />
 +    <Compile Include="Terraria.ModLoader\GlobalTile.cs" />
 +    <Compile Include="Terraria.ModLoader\GlobalWall.cs" />
++    <Compile Include="Terraria.ModLoader\HookBuilder.cs" />
 +    <Compile Include="Terraria.ModLoader\Interface.cs" />
 +    <Compile Include="Terraria.ModLoader\ItemLoader.cs" />
 +    <Compile Include="Terraria.ModLoader\MapEntry.cs" />
@@ -226,6 +227,14 @@
      <Compile Include="Terraria.Modules\AnchorDataModule.cs" />
      <Compile Include="Terraria.Modules\AnchorTypesModule.cs" />
      <Compile Include="Terraria.Modules\LiquidDeathModule.cs" />
+@@ -484,6 +_,7 @@
+     <Compile Include="Terraria\NPC.cs" />
+     <Compile Include="Terraria\PartyHatColor.cs" />
+     <Compile Include="Terraria\Player.cs" />
++    <Compile Include="Terraria\Player_tML.cs" />
+     <Compile Include="Terraria\Program.cs" />
+     <Compile Include="Terraria\Projectile.cs" />
+     <Compile Include="Terraria\Rain.cs" />
 @@ -511,11 +_,58 @@
    </ItemGroup>
    <ItemGroup>

@@ -1,6 +1,6 @@
 --- src/Terraria\Terraria\Player.cs
 +++ src/tModLoader\Terraria\Player.cs
-@@ -27,6 +_,9 @@
+@@ -27,10 +_,13 @@
  using Terraria.UI.Gamepad;
  using Terraria.Utilities;
  using Terraria.World.Generation;
@@ -10,6 +10,11 @@
  
  namespace Terraria
  {
+-	public class Player : Entity
++	public partial class Player : Entity
+ 	{
+ 		public static class Hooks
+ 		{
 @@ -39,11 +_,13 @@
  			public static void PlayerConnect(int playerIndex)
  			{

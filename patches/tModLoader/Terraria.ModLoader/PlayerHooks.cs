@@ -40,17 +40,17 @@ namespace Terraria.ModLoader
 
 		public static void ResetEffects(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
+			foreach (var hook in player.resetEffectsHooks)
 			{
-				modPlayer.ResetEffects();
+				hook();
 			}
 		}
 
 		public static void UpdateDead(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
+			foreach (var hook in player.updateDeadHooks)
 			{
-				modPlayer.UpdateDead();
+				hook();
 			}
 		}
 
@@ -69,9 +69,9 @@ namespace Terraria.ModLoader
 			item.SetDefaults("Copper Axe");
 			item.Prefix(-1);
 			items.Add(item);
-			foreach (ModPlayer modPlayer in player.modPlayers)
+			foreach (var hook in player.setupStartInventoryHooks)
 			{
-				modPlayer.SetupStartInventory(items);
+				hook(items);
 			}
 			IDictionary<int, int> counts = new Dictionary<int, int>();
 			foreach (Item item0 in items)
