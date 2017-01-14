@@ -30,6 +30,7 @@ namespace Terraria.ModLoader
 		internal static void SetupPlayer(Player player)
 		{
 			player.modPlayers = players.Select(modPlayer => modPlayer.CreateFor(player)).ToArray();
+			player.SetupHooks();
 		}
 
 		internal static ModPlayer GetModPlayer(Player player, Mod mod, string name)
@@ -40,12 +41,12 @@ namespace Terraria.ModLoader
 
 		public static void ResetEffects(Player player)
 		{
-			player.resetEffectsHooks.Call();
+			player.ResetEffectsHooks.Call();
 		}
 
 		public static void UpdateDead(Player player)
 		{
-			player.updateDeadHooks.Call();
+			player.UpdateDeadHooks.Call();
 		}
 
 		public static IList<Item> SetupStartInventory(Player player)
@@ -63,7 +64,7 @@ namespace Terraria.ModLoader
 			item.SetDefaults("Copper Axe");
 			item.Prefix(-1);
 			items.Add(item);
-			player.setupStartInventoryHooks.Call(items);
+			player.SetupStartInventoryHooks.Call(items);
 			IDictionary<int, int> counts = new Dictionary<int, int>();
 			foreach (Item item0 in items)
 			{
@@ -135,30 +136,17 @@ namespace Terraria.ModLoader
 
 		public static void UpdateBiomes(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateBiomes();
-			}
+			player.UpdateBiomesHooks.Call();
 		}
 
 		public static bool CustomBiomesMatch(Player player, Player other)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.CustomBiomesMatch(other))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.CustomBiomesMatchHooks.CallUntilFalse(other);
 		}
 
 		public static void CopyCustomBiomesTo(Player player, Player other)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.CopyCustomBiomesTo(other);
-			}
+			player.CopyCustomBiomesToHooks.Call(other);
 		}
 
 		public static void SendCustomBiomes(Player player, BinaryWriter writer)
@@ -238,10 +226,7 @@ namespace Terraria.ModLoader
 
 		public static void UpdateBiomeVisuals(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateBiomeVisuals();
-			}
+			player.UpdateBiomeVisualsHooks.Call();
 		}
 
 		public static void clientClone(Player player, Player clientClone)
@@ -270,209 +255,119 @@ namespace Terraria.ModLoader
 
 		public static Texture2D GetMapBackgroundImage(Player player)
 		{
-			Texture2D texture = null;
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				texture = modPlayer.GetMapBackgroundImage();
-				if (texture != null)
-				{
-					return texture;
-				}
-			}
-			return texture;
+			return player.GetMapBackgroundImageHooks.CallUntilNonNull();
 		}
 
 		public static void UpdateBadLifeRegen(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateBadLifeRegen();
-			}
+			player.UpdateBadLifeRegenHooks.Call();
 		}
 
 		public static void UpdateLifeRegen(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateLifeRegen();
-			}
+			player.UpdateLifeRegenHooks.Call();
 		}
 
 		public static void NaturalLifeRegen(Player player, ref float regen)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.NaturalLifeRegen(ref regen);
-			}
+			player.NaturalLifeRegenHooks.Call(ref regen);
 		}
 
 		public static void PreUpdate(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PreUpdate();
-			}
+			player.PreUpdateHooks.Call();
 		}
 
 		public static void SetControls(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.SetControls();
-			}
+			player.SetControlsHooks.Call();
 		}
 
 		public static void PreUpdateBuffs(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PreUpdateBuffs();
-			}
+			player.PreUpdateBuffsHooks.Call();
 		}
 
 		public static void PostUpdateBuffs(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostUpdateBuffs();
-			}
+			player.PostUpdateBuffsHooks.Call();
 		}
 
 		public static void UpdateEquips(Player player, ref bool wallSpeedBuff, ref bool tileSpeedBuff, ref bool tileRangeBuff)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateEquips(ref wallSpeedBuff, ref tileSpeedBuff, ref tileRangeBuff);
-			}
+			player.UpdateEquipsHooks.Call(ref wallSpeedBuff, ref tileSpeedBuff, ref tileRangeBuff);
 		}
 
 		public static void UpdateVanityAccessories(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.UpdateVanityAccessories();
-			}
+			player.UpdateVanityAccessoriesHooks.Call();
 		}
 
 		public static void PostUpdateEquips(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostUpdateEquips();
-			}
+			player.PostUpdateEquipsHooks.Call();
 		}
 
 		public static void PostUpdateMiscEffects(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostUpdateMiscEffects();
-			}
+			player.PostUpdateMiscEffectsHooks.Call();
 		}
 
 		public static void PostUpdateRunSpeeds(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostUpdateRunSpeeds();
-			}
+			player.PostUpdateRunSpeedsHooks.Call();
 		}
 
 		public static void PostUpdate(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostUpdate();
-			}
+			player.PostUpdateHooks.Call();
 		}
 
 		public static void FrameEffects(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.FrameEffects();
-			}
+			player.FrameEffectsHooks.Call();
 		}
 
 		public static bool PreHurt(Player player, bool pvp, bool quiet, ref int damage, ref int hitDirection,
 			ref bool crit, ref bool customDamage, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
 		{
-			bool flag = true;
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.PreHurt(pvp, quiet, ref damage, ref hitDirection, ref crit, ref customDamage,
-						ref playSound, ref genGore, ref damageSource))
-				{
-					flag = false;
-				}
-			}
-			return flag;
+			return player.PreHurtHooks.CallConditionalWithDefaultTrue(pvp, quiet, ref damage, ref hitDirection, ref crit, ref customDamage, ref playSound, ref genGore, ref damageSource);
 		}
 
 		public static void Hurt(Player player, bool pvp, bool quiet, double damage, int hitDirection, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.Hurt(pvp, quiet, damage, hitDirection, crit);
-			}
+			player.HurtHooks.Call(pvp, quiet, damage, hitDirection, crit);
 		}
 
 		public static void PostHurt(Player player, bool pvp, bool quiet, double damage, int hitDirection, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostHurt(pvp, quiet, damage, hitDirection, crit);
-			}
+			player.PostHurtHooks.Call(pvp, quiet, damage, hitDirection, crit);
 		}
 
 		public static bool PreKill(Player player, double damage, int hitDirection, bool pvp, ref bool playSound,
 			ref bool genGore, ref PlayerDeathReason damageSource)
 		{
-			bool flag = true;
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.PreKill(damage, hitDirection, pvp, ref playSound, ref genGore, ref damageSource))
-				{
-					flag = false;
-				}
-			}
-			return flag;
+			return player.PreKillHooks.CallConditionalWithDefaultTrue(damage, hitDirection, pvp, ref playSound, ref genGore, ref damageSource);
 		}
 
 		public static void Kill(Player player, double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.Kill(damage, hitDirection, pvp, damageSource);
-			}
+			player.KillHooks.Call(damage, hitDirection, pvp, damageSource);
 		}
 
 		public static bool PreItemCheck(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.PreItemCheck())
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.PreItemCheckHooks.CallUntilFalse();
 		}
 
 		public static void PostItemCheck(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PostItemCheck();
-			}
+			player.PostItemCheckHooks.Call();
 		}
 
 		public static void GetWeaponDamage(Player player, Item item, ref int damage)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.GetWeaponDamage(item, ref damage);
-			}
+			player.GetWeaponDamageHooks.Call(item, ref damage);
 		}
 
 		public static void ProcessTriggers(Player player, TriggersSet triggersSet)
@@ -485,22 +380,12 @@ namespace Terraria.ModLoader
 
 		public static void GetWeaponKnockback(Player player, Item item, ref float knockback)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.GetWeaponKnockback(item, ref knockback);
-			}
+			player.GetWeaponKnockbackHooks.Call(item, ref knockback);
 		}
 
 		public static bool ConsumeAmmo(Player player, Item weapon, Item ammo)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.ConsumeAmmo(weapon, ammo))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.ConsumeAmmoHooks.CallUntilFalse(weapon, ammo);
 		}
 
 		public static bool Shoot(Player player, Item item, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
@@ -517,10 +402,7 @@ namespace Terraria.ModLoader
 
 		public static void MeleeEffects(Player player, Item item, Rectangle hitbox)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.MeleeEffects(item, hitbox);
-			}
+			player.MeleeEffectsHooks.Call(item, hitbox);
 		}
 
 		public static void OnHitAnything(Player player, float x, float y, Entity victim)
