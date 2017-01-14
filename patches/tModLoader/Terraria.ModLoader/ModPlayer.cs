@@ -63,6 +63,7 @@ namespace Terraria.ModLoader
 		{
 		}
 
+		[Obsolete]
 		public virtual void PreSaveCustomData()
 		{
 		}
