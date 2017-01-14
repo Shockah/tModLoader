@@ -8,6 +8,9 @@ namespace Terraria.ModLoader
 	public delegate void ActionNR<T1, T2>(T1 t1, ref T2 t2);
 	public delegate void ActionRR<T1, T2>(ref T1 t1, ref T2 t2);
 	public delegate void ActionRRR<T1, T2, T3>(ref T1 t1, ref T2 t2, ref T3 t3);
+	public delegate void ActionNNRR<T1, T2, T3, T4>(T1 t1, T2 t2, ref T3 t3, ref T4 t4);
+	public delegate void ActionNNRRR<T1, T2, T3, T4, T5>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5);
+	public delegate void ActionNNRRRR<T1, T2, T3, T4, T5, T6>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6);
 	public delegate R FuncNNNRRR<T1, T2, T3, T4, T5, T6, R>(T1 t1, T2 t2, T3 t3, ref T4 t4, ref T5 t5, ref T6 t6);
 	public delegate R FuncNRRRRRR<T1, T2, T3, T4, T5, T6, T7, R>(T1 t1, ref T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6, ref T7 t7);
 	public delegate R FuncNNRRRRRRR<T1, T2, T3, T4, T5, T6, T7, T8, T9, R>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6, ref T7 t7, ref T8 t8, ref T9 t9);
@@ -93,6 +96,24 @@ namespace Terraria.ModLoader
 			foreach (var f in list)
 				f(ref t1, ref t2, ref t3);
 		}
+
+		public static void Call<T1, T2, T3, T4>(this IEnumerable<ActionNNRR<T1, T2, T3, T4>> list, T1 t1, T2 t2, ref T3 t3, ref T4 t4)
+		{
+			foreach (var f in list)
+				f(t1, t2, ref t3, ref t4);
+		}
+
+		public static void Call<T1, T2, T3, T4, T5>(this IEnumerable<ActionNNRRR<T1, T2, T3, T4, T5>> list, T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5)
+		{
+			foreach (var f in list)
+				f(t1, t2, ref t3, ref t4, ref t5);
+		}
+
+		public static void Call<T1, T2, T3, T4, T5, T6>(this IEnumerable<ActionNNRRRR<T1, T2, T3, T4, T5, T6>> list, T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6)
+		{
+			foreach (var f in list)
+				f(t1, t2, ref t3, ref t4, ref t5, ref t6);
+		}
 		#endregion
 
 		#region CallUntilFalse
@@ -126,6 +147,20 @@ namespace Terraria.ModLoader
 				if (f(t1, ref t2, ref t3, ref t4, ref t5, ref t6, ref t7))
 					return false;
 			return true;
+		}
+
+		public static bool? CallUntilFalse<T1, T2>(this IEnumerable<Func<T1, T2, bool?>> list, T1 t1, T2 t2)
+		{
+			bool? flag = null;
+			foreach (var f in list)
+			{
+				bool? value = f(t1, t2);
+				if (value == false)
+					return false;
+				else if (value == true)
+					flag = true;
+			}
+			return flag;
 		}
 		#endregion
 

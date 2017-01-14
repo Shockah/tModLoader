@@ -43,6 +43,19 @@ namespace Terraria
 		internal Func<Item, Item, bool>[] ConsumeAmmoHooks;
 		internal FuncNRRRRRR<Item, Vector2, float, float, int, int, float, bool>[] ShootHooks;
 		internal Action<Item, Rectangle>[] MeleeEffectsHooks;
+		internal Action<float, float, Entity>[] OnHitAnythingHooks;
+		internal Func<Item, NPC, bool?>[] CanHitNPCHooks;
+		internal ActionNNRRR<Item, NPC, int, float, bool>[] ModifyHitNPCHooks;
+		internal Action<Item, NPC, int, float, bool>[] OnHitNPCHooks;
+		internal Func<Projectile, NPC, bool?>[] CanHitNPCWithProjHooks;
+		internal ActionNNRRRR<Projectile, NPC, int, float, bool, int>[] ModifyHitNPCWithProjHooks;
+		internal Action<Projectile, NPC, int, float, bool>[] OnHitNPCWithProjHooks;
+		internal Func<Item, Player, bool>[] CanHitPvpHooks;
+		internal ActionNNRR<Item, Player, int, bool>[] ModifyHitPvpHooks;
+		internal Action<Item, Player, int, bool>[] OnHitPvpHooks;
+		internal Func<Projectile, Player, bool>[] CanHitPvpWithProjHooks;
+		internal ActionNNRR<Projectile, Player, int, bool>[] ModifyHitPvpWithProjHooks;
+		internal Action<Projectile, Player, int, bool>[] OnHitPvpWithProjHooks;
 
 		private void BuildHooks<R>(out R[] hooks, Func<ModPlayer, R> func) where R : class
 		{
@@ -84,6 +97,19 @@ namespace Terraria
 			BuildHooks(out ConsumeAmmoHooks, m => m.ConsumeAmmo);
 			BuildHooks(out ShootHooks, m => m.Shoot);
 			BuildHooks(out MeleeEffectsHooks, m => m.MeleeEffects);
+			BuildHooks(out OnHitAnythingHooks, m => m.OnHitAnything);
+			BuildHooks(out CanHitNPCHooks, m => m.CanHitNPC);
+			BuildHooks(out ModifyHitNPCHooks, m => m.ModifyHitNPC);
+			BuildHooks(out OnHitNPCHooks, m => m.OnHitNPC);
+			BuildHooks(out CanHitNPCWithProjHooks, m => m.CanHitNPCWithProj);
+			BuildHooks(out ModifyHitNPCWithProjHooks, m => m.ModifyHitNPCWithProj);
+			BuildHooks(out OnHitNPCWithProjHooks, m => m.OnHitNPCWithProj);
+			BuildHooks(out CanHitPvpHooks, m => m.CanHitPvp);
+			BuildHooks(out ModifyHitPvpHooks, m => m.ModifyHitPvp);
+			BuildHooks(out OnHitPvpHooks, m => m.OnHitPvp);
+			BuildHooks(out CanHitPvpWithProjHooks, m => m.CanHitPvpWithProj);
+			BuildHooks(out ModifyHitPvpWithProjHooks, m => m.ModifyHitPvpWithProj);
+			BuildHooks(out OnHitPvpWithProjHooks, m => m.OnHitPvpWithProj);
 		}
 	}
 }

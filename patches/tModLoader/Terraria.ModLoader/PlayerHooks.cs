@@ -407,152 +407,82 @@ namespace Terraria.ModLoader
 
 		public static void OnHitAnything(Player player, float x, float y, Entity victim)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitAnything(x, y, victim);
-			}
+			player.OnHitAnythingHooks.Call(x, y, victim);
 		}
 
 		public static bool? CanHitNPC(Player player, Item item, NPC target)
 		{
-			bool? flag = null;
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				bool? canHit = modPlayer.CanHitNPC(item, target);
-				if (canHit.HasValue && !canHit.Value)
-				{
-					return false;
-				}
-				if (canHit.HasValue)
-				{
-					flag = canHit.Value;
-				}
-			}
-			return flag;
+			return player.CanHitNPCHooks.CallUntilFalse(item, target);
 		}
 
 		public static void ModifyHitNPC(Player player, Item item, NPC target, ref int damage, ref float knockback, ref bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitNPC(item, target, ref damage, ref knockback, ref crit);
-			}
+			player.ModifyHitNPCHooks.Call(item, target, ref damage, ref knockback, ref crit);
 		}
 
 		public static void OnHitNPC(Player player, Item item, NPC target, int damage, float knockback, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitNPC(item, target, damage, knockback, crit);
-			}
+			player.OnHitNPCHooks.Call(item, target, damage, knockback, crit);
 		}
 
 		public static bool? CanHitNPCWithProj(Projectile proj, NPC target)
 		{
 			if (proj.npcProj || proj.trap)
-			{
 				return null;
-			}
+
 			Player player = Main.player[proj.owner];
-			bool? flag = null;
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				bool? canHit = modPlayer.CanHitNPCWithProj(proj, target);
-				if (canHit.HasValue && !canHit.Value)
-				{
-					return false;
-				}
-				if (canHit.HasValue)
-				{
-					flag = canHit.Value;
-				}
-			}
-			return flag;
+			return player.CanHitNPCWithProjHooks.CallUntilFalse(proj, target);
 		}
 
 		public static void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
 		{
 			if (proj.npcProj || proj.trap)
-			{
 				return;
-			}
+
 			Player player = Main.player[proj.owner];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitNPCWithProj(proj, target, ref damage, ref knockback, ref crit, ref hitDirection);
-			}
+			player.ModifyHitNPCWithProjHooks.Call(proj, target, ref damage, ref knockback, ref crit, ref hitDirection);
 		}
 
 		public static void OnHitNPCWithProj(Projectile proj, NPC target, int damage, float knockback, bool crit)
 		{
 			if (proj.npcProj || proj.trap)
-			{
 				return;
-			}
+
 			Player player = Main.player[proj.owner];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitNPCWithProj(proj, target, damage, knockback, crit);
-			}
+			player.OnHitNPCWithProjHooks.Call(proj, target, damage, knockback, crit);
 		}
 
 		public static bool CanHitPvp(Player player, Item item, Player target)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.CanHitPvp(item, target))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.CanHitPvpHooks.CallUntilFalse(item, target);
 		}
 
 		public static void ModifyHitPvp(Player player, Item item, Player target, ref int damage, ref bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitPvp(item, target, ref damage, ref crit);
-			}
+			player.ModifyHitPvpHooks.Call(item, target, ref damage, ref crit);
 		}
 
 		public static void OnHitPvp(Player player, Item item, Player target, int damage, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitPvp(item, target, damage, crit);
-			}
+			player.OnHitPvpHooks.Call(item, target, damage, crit);
 		}
 
 		public static bool CanHitPvpWithProj(Projectile proj, Player target)
 		{
 			Player player = Main.player[proj.owner];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.CanHitPvpWithProj(proj, target))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.CanHitPvpWithProjHooks.CallUntilFalse(proj, target);
 		}
 
 		public static void ModifyHitPvpWithProj(Projectile proj, Player target, ref int damage, ref bool crit)
 		{
 			Player player = Main.player[proj.owner];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitPvpWithProj(proj, target, ref damage, ref crit);
-			}
+			player.ModifyHitPvpWithProjHooks.Call(proj, target, ref damage, ref crit);
 		}
 
 		public static void OnHitPvpWithProj(Projectile proj, Player target, int damage, bool crit)
 		{
 			Player player = Main.player[proj.owner];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitPvpWithProj(proj, target, damage, crit);
-			}
+			player.OnHitPvpWithProjHooks.Call(proj, target, damage, crit);
 		}
 
 		public static bool CanBeHitByNPC(Player player, NPC npc, ref int cooldownSlot)
