@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Terraria.ModLoader
 {
@@ -66,7 +67,11 @@ namespace Terraria.ModLoader
 			foreach (T t in list)
 			{
 				R hook = func(t);
-				CallOrderAttribute[] attribs = (hook as Delegate).Method.GetCustomAttributes(typeof(CallOrderAttribute), false) as CallOrderAttribute[];
+				MethodInfo method = (hook as Delegate).Method;
+				if (method.DeclaringType == typeof(T))
+					continue;
+
+				CallOrderAttribute[] attribs = method.GetCustomAttributes(typeof(CallOrderAttribute), false) as CallOrderAttribute[];
 				CallOrder callOrder = attribs.Length == 1 ? attribs[0].order : CallOrder.Default;
 				order[(int)callOrder].Add(Tuple.Create(t, hook));
 			}
