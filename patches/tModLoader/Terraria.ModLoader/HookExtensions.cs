@@ -7,10 +7,15 @@ namespace Terraria.ModLoader
 	public delegate void ActionR<T1>(ref T1 t1);
 	public delegate void ActionNR<T1, T2>(T1 t1, ref T2 t2);
 	public delegate void ActionRR<T1, T2>(ref T1 t1, ref T2 t2);
+	public delegate void ActionNNR<T1, T2, T3>(T1 t1, T2 t2, ref T3 t3);
+	public delegate void ActionNRR<T1, T2, T3>(T1 t1, ref T2 t2, ref T3 t3);
 	public delegate void ActionRRR<T1, T2, T3>(ref T1 t1, ref T2 t2, ref T3 t3);
 	public delegate void ActionNNRR<T1, T2, T3, T4>(T1 t1, T2 t2, ref T3 t3, ref T4 t4);
 	public delegate void ActionNNRRR<T1, T2, T3, T4, T5>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5);
 	public delegate void ActionNNRRRR<T1, T2, T3, T4, T5, T6>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6);
+	public delegate void ActionNRRRRR<T1, T2, T3, T4, T5, T6>(T1 t1, ref T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6);
+	public delegate void ActionNNNNNNNRR<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, ref T8 t8, ref T9 t9);
+	public delegate R FuncNR<T1, T2, R>(T1 t1, ref T2 t2);
 	public delegate R FuncNNNRRR<T1, T2, T3, T4, T5, T6, R>(T1 t1, T2 t2, T3 t3, ref T4 t4, ref T5 t5, ref T6 t6);
 	public delegate R FuncNRRRRRR<T1, T2, T3, T4, T5, T6, T7, R>(T1 t1, ref T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6, ref T7 t7);
 	public delegate R FuncNNRRRRRRR<T1, T2, T3, T4, T5, T6, T7, T8, T9, R>(T1 t1, T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6, ref T7 t7, ref T8 t8, ref T9 t9);
@@ -91,6 +96,18 @@ namespace Terraria.ModLoader
 				f(ref t1, ref t2);
 		}
 
+		public static void Call<T1, T2, T3>(this IEnumerable<ActionNNR<T1, T2, T3>> list, T1 t1, T2 t2, ref T3 t3)
+		{
+			foreach (var f in list)
+				f(t1, t2, ref t3);
+		}
+
+		public static void Call<T1, T2, T3>(this IEnumerable<ActionNRR<T1, T2, T3>> list, T1 t1, ref T2 t2, ref T3 t3)
+		{
+			foreach (var f in list)
+				f(t1, ref t2, ref t3);
+		}
+
 		public static void Call<T1, T2, T3>(this IEnumerable<ActionRRR<T1, T2, T3>> list, ref T1 t1, ref T2 t2, ref T3 t3)
 		{
 			foreach (var f in list)
@@ -113,6 +130,18 @@ namespace Terraria.ModLoader
 		{
 			foreach (var f in list)
 				f(t1, t2, ref t3, ref t4, ref t5, ref t6);
+		}
+
+		public static void Call<T1, T2, T3, T4, T5, T6>(this IEnumerable<ActionNRRRRR<T1, T2, T3, T4, T5, T6>> list, T1 t1, ref T2 t2, ref T3 t3, ref T4 t4, ref T5 t5, ref T6 t6)
+		{
+			foreach (var f in list)
+				f(t1, ref t2, ref t3, ref t4, ref t5, ref t6);
+		}
+
+		public static void Call<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this IEnumerable<ActionNNNNNNNRR<T1, T2, T3, T4, T5, T6, T7, T8, T9>> list, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, ref T8 t8, ref T9 t9)
+		{
+			foreach (var f in list)
+				f(t1, t2, t3, t4, t5, t6, t7, ref t8, ref t9);
 		}
 		#endregion
 
@@ -137,6 +166,14 @@ namespace Terraria.ModLoader
 		{
 			foreach (var f in list)
 				if (f(t1, t2))
+					return false;
+			return true;
+		}
+
+		public static bool CallUntilFalse<T1, T2>(this IEnumerable<FuncNR<T1, T2, bool>> list, T1 t1, ref T2 t2)
+		{
+			foreach (var f in list)
+				if (f(t1, ref t2))
 					return false;
 			return true;
 		}

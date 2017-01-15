@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria.DataStructures;
+using Terraria.GameInput;
 using Terraria.ModLoader;
 
 namespace Terraria
@@ -56,6 +57,26 @@ namespace Terraria
 		internal Func<Projectile, Player, bool>[] CanHitPvpWithProjHooks;
 		internal ActionNNRR<Projectile, Player, int, bool>[] ModifyHitPvpWithProjHooks;
 		internal Action<Projectile, Player, int, bool>[] OnHitPvpWithProjHooks;
+		internal FuncNR<NPC, int, bool>[] CanBeHitByNPCHooks;
+		internal ActionNRR<NPC, int, bool>[] ModifyHitByNPCHooks;
+		internal Action<NPC, int, bool>[] OnHitByNPCHooks;
+		internal Func<Projectile, bool>[] CanBeHitByProjectileHooks;
+		internal ActionNRR<Projectile, int, bool>[] ModifyHitByProjectileHooks;
+		internal Action<Projectile, int, bool>[] OnHitByProjectileHooks;
+		internal ActionNNNNNNNRR<Item, Item, int, int, int, int, int, int, bool>[] CatchFishHooks;
+		internal ActionNNR<Item, Item, int>[] GetFishingLevelHooks;
+		internal Action<float, List<Item>>[] AnglerQuestRewardHooks;
+		internal Action<List<int>>[] GetDyeTraderRewardHooks;
+		internal ActionNRRRRR<PlayerDrawInfo, float, float, float, float, bool>[] DrawEffectsHooks;
+		internal ActionR<PlayerDrawInfo>[] ModifyDrawInfoHooks;
+		internal Action<List<PlayerLayer>>[] ModifyDrawLayersHooks;
+		internal Action<List<PlayerHeadLayer>>[] ModifyDrawHeadLayersHooks;
+		internal Action[] ModifyScreenPositionHooks;
+		internal ActionR<float>[] ModifyZoomHooks;
+		internal Action<Player>[] PlayerConnectHooks;
+		internal Action<Player>[] PlayerDisconnectHooks;
+		internal Action<Player>[] OnEnterWorldHooks;
+		internal Action<TriggersSet>[] ProcessTriggersHooks;
 
 		private void BuildHooks<R>(out R[] hooks, Func<ModPlayer, R> func) where R : class
 		{
@@ -110,6 +131,26 @@ namespace Terraria
 			BuildHooks(out CanHitPvpWithProjHooks, m => m.CanHitPvpWithProj);
 			BuildHooks(out ModifyHitPvpWithProjHooks, m => m.ModifyHitPvpWithProj);
 			BuildHooks(out OnHitPvpWithProjHooks, m => m.OnHitPvpWithProj);
+			BuildHooks(out CanBeHitByNPCHooks, m => m.CanBeHitByNPC);
+			BuildHooks(out ModifyHitByNPCHooks, m => m.ModifyHitByNPC);
+			BuildHooks(out OnHitByNPCHooks, m => m.OnHitByNPC);
+			BuildHooks(out CanBeHitByProjectileHooks, m => m.CanBeHitByProjectile);
+			BuildHooks(out ModifyHitByProjectileHooks, m => m.ModifyHitByProjectile);
+			BuildHooks(out OnHitByProjectileHooks, m => m.OnHitByProjectile);
+			BuildHooks(out CatchFishHooks, m => m.CatchFish);
+			BuildHooks(out GetFishingLevelHooks, m => m.GetFishingLevel);
+			BuildHooks(out AnglerQuestRewardHooks, m => m.AnglerQuestReward);
+			BuildHooks(out GetDyeTraderRewardHooks, m => m.GetDyeTraderReward);
+			BuildHooks(out DrawEffectsHooks, m => m.DrawEffects);
+			BuildHooks(out ModifyDrawInfoHooks, m => m.ModifyDrawInfo);
+			BuildHooks(out ModifyDrawLayersHooks, m => m.ModifyDrawLayers);
+			BuildHooks(out ModifyDrawHeadLayersHooks, m => m.ModifyDrawHeadLayers);
+			BuildHooks(out ModifyScreenPositionHooks, m => m.ModifyScreenPosition);
+			BuildHooks(out ModifyZoomHooks, m => m.ModifyZoom);
+			BuildHooks(out PlayerConnectHooks, m => m.PlayerConnect);
+			BuildHooks(out PlayerDisconnectHooks, m => m.PlayerDisconnect);
+			BuildHooks(out OnEnterWorldHooks, m => m.OnEnterWorld);
+			BuildHooks(out ProcessTriggersHooks, m => m.ProcessTriggers);
 		}
 	}
 }

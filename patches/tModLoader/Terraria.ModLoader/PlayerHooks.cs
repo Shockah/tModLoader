@@ -372,10 +372,7 @@ namespace Terraria.ModLoader
 
 		public static void ProcessTriggers(Player player, TriggersSet triggersSet)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ProcessTriggers(triggersSet);
-			}
+			player.ProcessTriggersHooks.Call(triggersSet);
 		}
 
 		public static void GetWeaponKnockback(Player player, Item item, ref float knockback)
@@ -390,14 +387,7 @@ namespace Terraria.ModLoader
 
 		public static bool Shoot(Player player, Item item, ref Vector2 position, ref float speedX, ref float speedY, ref int type, ref int damage, ref float knockBack)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.Shoot(item, ref position, ref speedX, ref speedY, ref type, ref damage, ref knockBack))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.ShootHooks.CallUntilFalse(item, ref position, ref speedX, ref speedY, ref type, ref damage, ref knockBack);
 		}
 
 		public static void MeleeEffects(Player player, Item item, Rectangle hitbox)
@@ -487,58 +477,32 @@ namespace Terraria.ModLoader
 
 		public static bool CanBeHitByNPC(Player player, NPC npc, ref int cooldownSlot)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.CanBeHitByNPC(npc, ref cooldownSlot))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.CanBeHitByNPCHooks.CallUntilFalse(npc, ref cooldownSlot);
 		}
 
 		public static void ModifyHitByNPC(Player player, NPC npc, ref int damage, ref bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitByNPC(npc, ref damage, ref crit);
-			}
+			player.ModifyHitByNPCHooks.Call(npc, ref damage, ref crit);
 		}
 
 		public static void OnHitByNPC(Player player, NPC npc, int damage, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitByNPC(npc, damage, crit);
-			}
+			player.OnHitByNPCHooks.Call(npc, damage, crit);
 		}
 
 		public static bool CanBeHitByProjectile(Player player, Projectile proj)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				if (!modPlayer.CanBeHitByProjectile(proj))
-				{
-					return false;
-				}
-			}
-			return true;
+			return player.CanBeHitByProjectileHooks.CallUntilFalse(proj);
 		}
 
 		public static void ModifyHitByProjectile(Player player, Projectile proj, ref int damage, ref bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyHitByProjectile(proj, ref damage, ref crit);
-			}
+			player.ModifyHitByProjectileHooks.Call(proj, ref damage, ref crit);
 		}
 
 		public static void OnHitByProjectile(Player player, Projectile proj, int damage, bool crit)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnHitByProjectile(proj, damage, crit);
-			}
+			player.OnHitByProjectileHooks.Call(proj, damage, crit);
 		}
 
 		public static void CatchFish(Player player, Item fishingRod, int power, int liquidType, int poolSize, int worldLayer, int questFish, ref int caughtType, ref bool junk)
@@ -552,50 +516,32 @@ namespace Terraria.ModLoader
 				}
 				i++;
 			}
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.CatchFish(fishingRod, player.inventory[i], power, liquidType, poolSize, worldLayer, questFish, ref caughtType, ref junk);
-			}
+			player.CatchFishHooks.Call(fishingRod, player.inventory[i], power, liquidType, poolSize, worldLayer, questFish, ref caughtType, ref junk);
 		}
 
 		public static void GetFishingLevel(Player player, Item fishingRod, Item bait, ref int fishingLevel)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.GetFishingLevel(fishingRod, bait, ref fishingLevel);
-			}
+			player.GetFishingLevelHooks.Call(fishingRod, bait, ref fishingLevel);
 		}
 
 		public static void AnglerQuestReward(Player player, float rareMultiplier, List<Item> rewardItems)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.AnglerQuestReward(rareMultiplier, rewardItems);
-			}
+			player.AnglerQuestRewardHooks.Call(rareMultiplier, rewardItems);
 		}
 
 		public static void GetDyeTraderReward(Player player, List<int> rewardPool)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.GetDyeTraderReward(rewardPool);
-			}
+			player.GetDyeTraderRewardHooks.Call(rewardPool);
 		}
 
 		public static void DrawEffects(PlayerDrawInfo drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright)
 		{
-			foreach (ModPlayer modPlayer in drawInfo.drawPlayer.modPlayers)
-			{
-				modPlayer.DrawEffects(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
-			}
+			drawInfo.drawPlayer.DrawEffectsHooks.Call(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
 		}
 
 		public static void ModifyDrawInfo(ref PlayerDrawInfo drawInfo)
 		{
-			foreach (ModPlayer modPlayer in drawInfo.drawPlayer.modPlayers)
-			{
-				modPlayer.ModifyDrawInfo(ref drawInfo);
-			}
+			drawInfo.drawPlayer.ModifyDrawInfoHooks.Call(ref drawInfo);
 		}
 
 		public static List<PlayerLayer> GetDrawLayers(Player drawPlayer)
@@ -648,10 +594,7 @@ namespace Terraria.ModLoader
 			{
 				layer.visible = true;
 			}
-			foreach (ModPlayer modPlayer in drawPlayer.modPlayers)
-			{
-				modPlayer.ModifyDrawLayers(layers);
-			}
+			drawPlayer.ModifyDrawLayersHooks.Call(layers);
 			return layers;
 		}
 
@@ -667,55 +610,37 @@ namespace Terraria.ModLoader
 			{
 				layer.visible = true;
 			}
-			foreach (ModPlayer modPlayer in drawPlayer.modPlayers)
-			{
-				modPlayer.ModifyDrawHeadLayers(layers);
-			}
+			drawPlayer.ModifyDrawHeadLayersHooks.Call(layers);
 			return layers;
 		}
 
 		public static void ModifyScreenPosition(Player player)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyScreenPosition();
-			}
+			player.ModifyScreenPositionHooks.Call();
 		}
 
 		public static void ModifyZoom(Player player, ref float zoom)
 		{
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.ModifyZoom(ref zoom);
-			}
+			player.ModifyZoomHooks.Call(ref zoom);
 		}
 
 		public static void PlayerConnect(int playerIndex)
 		{
-			var player = Main.player[playerIndex];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PlayerConnect(player);
-			}
+			Player player = Main.player[playerIndex];
+			player.PlayerConnectHooks.Call(player);
 		}
 
 		public static void PlayerDisconnect(int playerIndex)
 		{
-			var player = Main.player[playerIndex];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.PlayerDisconnect(player);
-			}
+			Player player = Main.player[playerIndex];
+			player.PlayerDisconnectHooks.Call(player);
 		}
 
 		// Do NOT hook into the Player.Hooks.OnEnterWorld event
 		public static void OnEnterWorld(int playerIndex)
 		{
-			var player = Main.player[playerIndex];
-			foreach (ModPlayer modPlayer in player.modPlayers)
-			{
-				modPlayer.OnEnterWorld(player);
-			}
+			Player player = Main.player[playerIndex];
+			player.OnEnterWorldHooks.Call(player);
 		}
 	}
 }
